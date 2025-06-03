@@ -18,7 +18,7 @@ A suite of specialized MCP servers that help you get the most out of AWS, wherev
     - [AWS Documentation MCP Server](#aws-documentation-mcp-server)
     - [Amazon Bedrock Knowledge Bases Retrieval MCP Server](#amazon-bedrock-knowledge-bases-retrieval-mcp-server)
     - [AWS Kendra Index MCP Server](#amazon-kendra-index-mcp-server)
-    - [Amazon Q index MCP Server](#amazon-qindex-mcp-server)
+    - [Amazon Q index MCP Server](#amazon-q-index-mcp-server)
     - [AWS CDK MCP Server](#aws-cdk-mcp-server)
     - [Cost Analysis MCP Server](#cost-analysis-mcp-server)
     - [Amazon Nova Canvas MCP Server](#amazon-nova-canvas-mcp-server)
