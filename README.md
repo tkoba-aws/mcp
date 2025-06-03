@@ -148,7 +148,7 @@ A server for accessing Amazon Q index and retrieve relevent data for ISVs (appro
 
 - Query Amazon Q indexes with natural language to give enterprise data as RAG context to ISV's AI tool
 
-[Learn more](src/amazon-qindex-mcp-server/README.md) | [Documentation](https://awslabs.github.io/mcp/servers/amazon-qindex-mcp-server/)
+[Learn more](src/amazon-qindex-mcp-server/README.md)
 
 
 ### Amazon Bedrock Knowledge Bases Retrieval MCP Server
