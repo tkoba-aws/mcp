@@ -23,7 +23,7 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, AnyHttpUrl
 
 from awslabs.amazon_qindex_mcp_server.clients import QBusinessClient, QBusinessClientError
-
+from mypy_boto3_qbusiness.type_defs import SearchRelevantContentResponseTypeDef
 
 # Configure logging
 logger.remove(0)
@@ -73,7 +73,6 @@ class ContentSource(BaseModel):
     
     This is a union type, so only one field should be specified.
     """
-    
     retriever: Optional[RetrieverContentSource] = Field(default=None, description="Retriever to use as content source")
 
 # # Update forward references for recursive AttributeFilter
@@ -281,7 +280,7 @@ async def search_relevant_content(
     aws_access_key_id: Optional[str] = None,
     aws_secret_access_key: Optional[str] = None,
     aws_session_token: Optional[str] = None,
-) -> Dict:
+) -> SearchRelevantContentResponseTypeDef:
     """Search for relevant content in an Amazon Q Business application.
 
     This operation searches for content within a Q Business application based on the provided
@@ -300,14 +299,15 @@ async def search_relevant_content(
     Parameters:
         application_id (str): The unique identifier of the application to search in
         query_text (str): The text to search for
-        attribute_filter (Optional[AttributeFilter]): Filter to apply to document attributes
-        content_source (Optional[ContentSource]): Configuration for content sources to search
+        attribute_filter (Optional[AttributeFilter]): Filter criteria to narrow down search results based on specific document attributes
+        content_source (Optional[ContentSource]): Configuration specifying which content sources to include in the search
         max_results (Optional[int]): Maximum number of results to return (1-100)
         next_token (Optional[str]): Token for pagination to get the next set of results
-        qbuiness_region (str): The AWS region in which. Qbusiness application is present
+        qbuiness_region (str): The AWS region in which Qbusiness application is present
         aws_access_key_id (Optional[str]): AWS access key ID from temporary credentials
         aws_secret_access_key (Optional[str]): AWS secret access key from temporary credentials
         aws_session_token (Optional[str]): AWS session token from temporary credentials
+
 
     Returns:
         Dict: Response syntax:
@@ -347,21 +347,27 @@ async def search_relevant_content(
         )
 
         # Convert models to dictionaries
-        content_source_dict = content_source.dict(exclude_none=True) if content_source else None
-        attribute_filter_dict = attribute_filter.dict(exclude_none=True) if attribute_filter else None
+        content_source_dict = None
+        if content_source:
+            content_source_dict = content_source.dict(exclude_none=True)
+            if 'retriever' in content_source_dict:
+                content_source_dict = {'retriever': content_source_dict['retriever']}
 
-        # Further process content_source_dict to ensure it's a valid dictionary
-        if content_source_dict and 'retriever' in content_source_dict:
-            content_source_dict = {'retriever': content_source_dict['retriever']}
+        attribute_filter_dict = None
+        if attribute_filter:
+            attribute_filter_dict = attribute_filter.dict(exclude_none=True)
+
+        # Ensure max_results is properly typed
+        max_results_int = int(max_results) if max_results is not None else None
 
         # Perform the search
         return client.search_relevant_content(
-            application_id=application_id,
-            query_text=query_text,
+            application_id=str(application_id),
+            query_text=str(query_text),
             attribute_filter=attribute_filter_dict,
             content_source=content_source_dict,
-            max_results=max_results,
-            next_token=next_token
+            max_results=max_results_int,
+            next_token=str(next_token) if next_token else None
         )
     except Exception as e:
         logger.error(f"Error searching Q Business content: {str(e)}")

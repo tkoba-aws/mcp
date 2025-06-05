@@ -24,6 +24,7 @@ from awslabs.amazon_qindex_mcp_server.server import mcp
 class TestMCPServer:
     """Tests for the MCP server configuration."""
     def setUp(self):
+        """Set up test fixtures before each test method."""
         self.mcp = mcp
 
     def test_server_initialization(self):

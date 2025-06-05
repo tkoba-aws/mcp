@@ -11,12 +11,16 @@
 
 import boto3
 from botocore.exceptions import ClientError
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import Dict, List, Optional, TYPE_CHECKING, Any
 from loguru import logger
-
+from mypy_boto3_qbusiness.type_defs import SearchRelevantContentResponseTypeDef
 
 if TYPE_CHECKING:
     from mypy_boto3_qbusiness.client import QBusinessClient as Boto3QBusinessClient
+    from mypy_boto3_qbusiness.type_defs import (
+        AttributeFilterUnionTypeDef,
+        ContentSourceTypeDef
+    )
 else:
     Boto3QBusinessClient = object
 
@@ -69,8 +73,10 @@ class QBusinessClient:
         Raises:
             QBusinessClientError: Wrapped client error with context
         """
-        error_code = error.response['Error']['Code']
-        error_message = error.response['Error']['Message']
+        error_details = error.response.get('Error', {})
+        error_code = error_details.get('Code', 'Unknown')
+        error_message = error_details.get('Message', 'No message provided')
+
         logger.error(f"AWS Q Business {operation} error: {error_code} - {error_message}")
 
         error_mapping = {
@@ -92,7 +98,7 @@ class QBusinessClient:
         content_source: Optional[Dict] = None,
         max_results: Optional[int] = None,
         next_token: Optional[str] = None
-    ) -> Dict:
+    ) -> SearchRelevantContentResponseTypeDef:
         """Search for relevant content in a Q Business application.
 
         Args:
@@ -132,20 +138,19 @@ class QBusinessClient:
         """
         try:
             # Build request parameters
-            params = {
-                'applicationId': application_id,
-                'queryText': query_text
+            params: Dict[str, Any] = {
+                'applicationId': str(application_id),
+                'queryText': str(query_text)
             }
 
-            if attribute_filter:
+            if attribute_filter is not None:
                 params['attributeFilter'] = attribute_filter
-            if content_source:
+            if content_source is not None:
                 params['contentSource'] = content_source
-            
-            if max_results:
-                params['maxResults'] = max_results
-            if next_token:
-                params['nextToken'] = next_token
+            if max_results is not None:
+                params['maxResults'] = int(max_results)
+            if next_token is not None:
+                params['nextToken'] = str(next_token)
 
             response = self.client.search_relevant_content(**params)
             
@@ -157,6 +162,7 @@ class QBusinessClient:
 
         except ClientError as e:
             self._handle_client_error(e, "SearchRelevantContent")
+            raise
         except Exception as e:
             logger.error(f"Unexpected error searching content: {str(e)}")
             raise QBusinessClientError(f"Unexpected error: {str(e)}")
