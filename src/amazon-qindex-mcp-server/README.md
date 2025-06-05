@@ -1,6 +1,6 @@
 # AWS Labs amazon-qindex MCP Server
 
-The AWS Labs amazon-qindex MCP Server is a Model Context Protocol (MCP) server designed to facilitate integration with Amazon Q Business's [SearchRelevantContent API](https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/isv-calling-api-idc.html). While the server provides essential tools and functions for authentication and search capabilities using Amazon Q index, it currently serves for Independent Software Vendors (ISVs) who are [AWS registered data accesors](https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/isv.html). The server enables cross-account search capabilities, allowing ISVs who are data accessors to search through enterprise customers' Q index and access relevant content across their data sources using specific authentication and authorization flows. 
+The AWS Labs amazon-qindex MCP Server is a Model Context Protocol (MCP) server designed to facilitate integration with Amazon Q Business's [SearchRelevantContent API](https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/isv-calling-api-idc.html). While the server provides essential tools and functions for authentication and search capabilities using Amazon Q index, it currently serves for Independent Software Vendors (ISVs) who are [AWS registered data accesors](https://docs.aws.amazon.com/amazonq/latest/qbusiness-ug/isv.html). The server enables cross-account search capabilities, allowing ISVs who are data accessors to search through enterprise customers' Q index and access relevant content across their data sources using specific authentication and authorization flows.
 
 For Amazon Q Business application owners, direct integration support is not yet available. This MCP server represents a comprehensive solution that aims to serve ISVs.
 
@@ -94,7 +94,7 @@ git clone [repository-url]
 # Go to root directory of this server
 cd <your repo path>/mcp/src/amazon-qindex-mcp-server/
 
-# Install dependencies 
+# Install dependencies
 pip install -e .
 ```
 
@@ -109,9 +109,9 @@ search <your query> on enterprise data
 2. You also need to provide the following details to proceed with the authentication flow in order to process SearchRelevantContent API
 
 ```
-application id - (enterprise account's Amazon Q Business application ID) 
+application id - (enterprise account's Amazon Q Business application ID)
 retriever id - (enterprise account's Amazon Q Business retriever ID)
-iam idc arn - (enterprise account's IdC application ARN) 
+iam idc arn - (enterprise account's IdC application ARN)
 idc region - (Region for the IAM Identity Center instance)
 qbuiness region - (enterprise account's Amazon Q Business application region)
 redirect url - (ISV's redirect url - this could be anything within allowlisted for the data accessor - ie https://localhost:8081)
@@ -144,4 +144,3 @@ This MCP server implementation is for demonstration purposes only to showcase ho
 - Implement proper validation of all authorization codes and tokens
 - Store tokens securely and never log them
 - Implement proper token revocation when sessions end
-

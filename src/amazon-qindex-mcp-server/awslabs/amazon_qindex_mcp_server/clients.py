@@ -11,30 +11,33 @@
 
 import boto3
 from botocore.exceptions import ClientError
-from typing import Dict, List, Optional, TYPE_CHECKING, Any
 from loguru import logger
 from mypy_boto3_qbusiness.type_defs import SearchRelevantContentResponseTypeDef
+from typing import TYPE_CHECKING, Any, Dict, Optional
+
 
 if TYPE_CHECKING:
     from mypy_boto3_qbusiness.client import QBusinessClient as Boto3QBusinessClient
-    from mypy_boto3_qbusiness.type_defs import (
-        AttributeFilterUnionTypeDef,
-        ContentSourceTypeDef
-    )
 else:
     Boto3QBusinessClient = object
 
 
 class QBusinessClientError(Exception):
     """Custom exception for Q Business client errors."""
+
     pass
 
 
 class QBusinessClient:
     """Client for interacting with Amazon Q Business API."""
 
-    def __init__(self, region_name: str = 'us-east-1', aws_access_key_id: Optional[str] = None, 
-                 aws_secret_access_key: Optional[str] = None, aws_session_token: Optional[str] = None):
+    def __init__(
+        self,
+        region_name: str = 'us-east-1',
+        aws_access_key_id: Optional[str] = None,
+        aws_secret_access_key: Optional[str] = None,
+        aws_session_token: Optional[str] = None,
+    ):
         """Initialize Q Business client.
 
         Args:
@@ -59,7 +62,7 @@ class QBusinessClient:
             aws_access_key_id=self.aws_access_key_id,
             aws_secret_access_key=self.aws_secret_access_key,
             aws_session_token=self.aws_session_token,
-            region_name=self.region_name
+            region_name=self.region_name,
         )
         return session.client('qbusiness')
 
@@ -77,19 +80,19 @@ class QBusinessClient:
         error_code = error_details.get('Code', 'Unknown')
         error_message = error_details.get('Message', 'No message provided')
 
-        logger.error(f"AWS Q Business {operation} error: {error_code} - {error_message}")
+        logger.error(f'AWS Q Business {operation} error: {error_code} - {error_message}')
 
         error_mapping = {
             'AccessDeniedException': 'Access denied',
             'ValidationException': 'Validation error',
             'ThrottlingException': 'Request throttled',
             'InternalServerException': 'Internal server error',
-            'ResourceNotFoundException': 'Resource not found'
+            'ResourceNotFoundException': 'Resource not found',
         }
 
-        message = f"{error_mapping.get(error_code, 'AWS Q Business error')}: {error_message}"
+        message = f'{error_mapping.get(error_code, "AWS Q Business error")}: {error_message}'
         raise QBusinessClientError(message)
-        
+
     def search_relevant_content(
         self,
         application_id: str,
@@ -97,13 +100,15 @@ class QBusinessClient:
         attribute_filter: Optional[Dict] = None,
         content_source: Optional[Dict] = None,
         max_results: Optional[int] = None,
-        next_token: Optional[str] = None
+        next_token: Optional[str] = None,
     ) -> SearchRelevantContentResponseTypeDef:
         """Search for relevant content in a Q Business application.
 
         Args:
             application_id (str): The unique identifier of the application
             query_text (str): The text to search for
+            attribute_filter (Optional[AttributeFilter]): Filter criteria to narrow down search results based on specific document attributes
+            content_source (Optional[ContentSource]): Configuration specifying which content sources to include in the search
             max_results (Optional[int]): Maximum number of results to return (1-100)
             next_token (Optional[str]): Token for pagination
             filters (Optional[Dict]): Filters to apply to the search
@@ -140,7 +145,7 @@ class QBusinessClient:
             # Build request parameters
             params: Dict[str, Any] = {
                 'applicationId': str(application_id),
-                'queryText': str(query_text)
+                'queryText': str(query_text),
             }
 
             if attribute_filter is not None:
@@ -153,17 +158,18 @@ class QBusinessClient:
                 params['nextToken'] = str(next_token)
 
             response = self.client.search_relevant_content(**params)
-            
-            if not response or 'relevantContent' not in response:
-                raise QBusinessClientError("Invalid response received from AWS Q Business")
 
-            logger.info(f"Successfully retrieved {len(response.get('relevantContent', []))} search results")
+            if not response or 'relevantContent' not in response:
+                raise QBusinessClientError('Invalid response received from AWS Q Business')
+
+            logger.info(
+                f'Successfully retrieved {len(response.get("relevantContent", []))} search results'
+            )
             return response
 
         except ClientError as e:
-            self._handle_client_error(e, "SearchRelevantContent")
+            self._handle_client_error(e, 'SearchRelevantContent')
             raise
         except Exception as e:
-            logger.error(f"Unexpected error searching content: {str(e)}")
-            raise QBusinessClientError(f"Unexpected error: {str(e)}")
-
+            logger.error(f'Unexpected error searching content: {str(e)}')
+            raise QBusinessClientError(f'Unexpected error: {str(e)}')

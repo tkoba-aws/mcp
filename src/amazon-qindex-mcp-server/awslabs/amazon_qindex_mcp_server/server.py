@@ -12,68 +12,89 @@
 """awslabs amazon-qindex MCP Server implementation."""
 
 import argparse
+import boto3
 import os
 import sys
-import json
-import base64
-import boto3
+from awslabs.amazon_qindex_mcp_server.clients import QBusinessClient
 from loguru import logger
 from mcp.server.fastmcp import FastMCP
-from typing import Dict, List, Optional
-from pydantic import BaseModel, Field, AnyHttpUrl
-
-from awslabs.amazon_qindex_mcp_server.clients import QBusinessClient, QBusinessClientError
 from mypy_boto3_qbusiness.type_defs import SearchRelevantContentResponseTypeDef
+from pydantic import BaseModel, Field
+from typing import Dict, List, Optional
+
 
 # Configure logging
 logger.remove(0)
 logger.add(sys.stderr, level='INFO')
 
+
 class DocumentAttributeValue(BaseModel):
     """Model for document attribute value types."""
-    
-    stringValue: Optional[str] = Field(default=None, description="String value")
-    stringListValue: Optional[List[str]] = Field(default=None, description="List of string values")
-    longValue: Optional[int] = Field(default=None, description="Long integer value")
-    longListValue: Optional[List[int]] = Field(default=None, description="List of long integer values")
-    dateValue: Optional[str] = Field(default=None, description="Date value in ISO 8601 format")
-    dateListValue: Optional[List[str]] = Field(default=None, description="List of date values")
+
+    stringValue: Optional[str] = Field(default=None, description='String value')
+    stringListValue: Optional[List[str]] = Field(default=None, description='List of string values')
+    longValue: Optional[int] = Field(default=None, description='Long integer value')
+    longListValue: Optional[List[int]] = Field(
+        default=None, description='List of long integer values'
+    )
+    dateValue: Optional[str] = Field(default=None, description='Date value in ISO 8601 format')
+    dateListValue: Optional[List[str]] = Field(default=None, description='List of date values')
 
 
 class DocumentAttribute(BaseModel):
     """Model for document attribute with name and value."""
-    
-    name: str = Field(description="Name of the document attribute")
-    value: DocumentAttributeValue = Field(description="Value of the document attribute")
+
+    name: str = Field(description='Name of the document attribute')
+    value: DocumentAttributeValue = Field(description='Value of the document attribute')
 
 
 class AttributeFilter(BaseModel):
     """Model for attribute filter conditions."""
-    
-    andAllFilters: Optional[List['AttributeFilter']] = Field(default=None, description="List of filters to AND together")
-    orAllFilters: Optional[List['AttributeFilter']] = Field(default=None, description="List of filters to OR together")
-    notFilter: Optional['AttributeFilter'] = Field(default=None, description="Negation of a filter")
-    equalsTo: Optional[DocumentAttribute] = Field(default=None, description="Exact match filter")
-    containsAll: Optional[DocumentAttribute] = Field(default=None, description="Contains all values filter")
-    containsAny: Optional[DocumentAttribute] = Field(default=None, description="Contains any values filter")
-    greaterThan: Optional[DocumentAttribute] = Field(default=None, description="Greater than filter")
-    greaterThanOrEquals: Optional[DocumentAttribute] = Field(default=None, description="Greater than or equals filter")
-    lessThan: Optional[DocumentAttribute] = Field(default=None, description="Less than filter")
-    lessThanOrEquals: Optional[DocumentAttribute] = Field(default=None, description="Less than or equals filter")
+
+    andAllFilters: Optional[List['AttributeFilter']] = Field(
+        default=None, description='List of filters to AND together'
+    )
+    orAllFilters: Optional[List['AttributeFilter']] = Field(
+        default=None, description='List of filters to OR together'
+    )
+    notFilter: Optional['AttributeFilter'] = Field(
+        default=None, description='Negation of a filter'
+    )
+    equalsTo: Optional[DocumentAttribute] = Field(default=None, description='Exact match filter')
+    containsAll: Optional[DocumentAttribute] = Field(
+        default=None, description='Contains all values filter'
+    )
+    containsAny: Optional[DocumentAttribute] = Field(
+        default=None, description='Contains any values filter'
+    )
+    greaterThan: Optional[DocumentAttribute] = Field(
+        default=None, description='Greater than filter'
+    )
+    greaterThanOrEquals: Optional[DocumentAttribute] = Field(
+        default=None, description='Greater than or equals filter'
+    )
+    lessThan: Optional[DocumentAttribute] = Field(default=None, description='Less than filter')
+    lessThanOrEquals: Optional[DocumentAttribute] = Field(
+        default=None, description='Less than or equals filter'
+    )
 
 
 class RetrieverContentSource(BaseModel):
     """Model for retriever content source."""
-    
-    retrieverId: str = Field(description="Identifier of the retriever")
+
+    retrieverId: str = Field(description='Identifier of the retriever')
 
 
 class ContentSource(BaseModel):
     """Model for content source configuration.
-    
+
     This is a union type, so only one field should be specified.
     """
-    retriever: Optional[RetrieverContentSource] = Field(default=None, description="Retriever to use as content source")
+
+    retriever: Optional[RetrieverContentSource] = Field(
+        default=None, description='Retriever to use as content source'
+    )
+
 
 # # Update forward references for recursive AttributeFilter
 AttributeFilter.model_rebuild()
@@ -81,8 +102,8 @@ AttributeFilter.model_rebuild()
 
 # Initialize MCP server
 mcp = FastMCP(
-    "awslabs.amazon-qindex-mcp-server",
-    instructions='Amazon Q index for ISVs MCP server provides access to your customers\' enterprise data into your applications. Here are the key details:',
+    'awslabs.amazon-qindex-mcp-server',
+    instructions="Amazon Q index for ISVs MCP server provides access to your customers' enterprise data into your applications. Here are the key details:",
     dependencies=[
         'pydantic',
         'loguru',
@@ -116,18 +137,18 @@ async def authorize_qindex(
         }
     """
     auth_url = (
-        f"https://oidc.{idc_region}.amazonaws.com/authorize"
-        f"?response_type=code"
-        f"&redirect_uri={isv_redirect_url}"
-        f"&state={oauth_state}"
-        f"&client_id={idc_application_arn}"
+        f'https://oidc.{idc_region}.amazonaws.com/authorize'
+        f'?response_type=code'
+        f'&redirect_uri={isv_redirect_url}'
+        f'&state={oauth_state}'
+        f'&client_id={idc_application_arn}'
     )
-    
+
     # Ask the user to visit the URL and provide the authorization code
     raise ValueError(
-        f"Please visit this URL to sign in: {auth_url}\n"
-        "After signing in, you will be redirected to your redirect URL.\n"
-        "Please provide the authorization code from the redirect URL to continue."
+        f'Please visit this URL to sign in: {auth_url}\n'
+        'After signing in, you will be redirected to your redirect URL.\n'
+        'Please provide the authorization code from the redirect URL to continue.'
     )
 
 
@@ -164,22 +185,19 @@ async def create_token_with_iam(
     try:
         # Create boto3 client for SSO OIDC
         aws_profile = os.environ.get('AWS_PROFILE', 'default')
-        session = boto3.Session(
-            region_name=idc_region,
-            profile_name=aws_profile
-        )
+        session = boto3.Session(region_name=idc_region, profile_name=aws_profile)
 
         sts_client = session.client('sts')
 
         assume_role_response = sts_client.assume_role(
-            RoleArn=role_arn, 
+            RoleArn=role_arn,
             RoleSessionName='automated-session',
             Tags=[
                 {
                     'Key': 'qbusiness-dataaccessor:ExternalId',
-                    'Value': 'Test-Tenant' # Replace with your actual tenant ID variable
+                    'Value': 'Test-Tenant',  # Replace with your actual tenant ID variable
                 }
-            ]
+            ],
         )
 
         # Get the temporary credentials from the assumed role
@@ -189,21 +207,21 @@ async def create_token_with_iam(
             aws_access_key_id=temp_credentials['AccessKeyId'],
             aws_secret_access_key=temp_credentials['SecretAccessKey'],
             aws_session_token=temp_credentials['SessionToken'],
-            region_name=idc_region
+            region_name=idc_region,
         )
 
         client = assumed_session.client('sso-oidc')
-        
+
         response = client.create_token_with_iam(
             clientId=idc_application_arn,
             redirectUri=redirect_uri,
             grantType='authorization_code',
-            code=code
+            code=code,
         )
-        
+
         return response
     except Exception as e:
-        logger.error(f"Error creating token with IAM: {str(e)}")
+        logger.error(f'Error creating token with IAM: {str(e)}')
         raise ValueError(str(e))
 
 
@@ -212,7 +230,7 @@ async def assume_role_with_identity_context(
     role_arn: str,
     identity_context: str,
     idc_region: str,
-    role_session_name: str = "qbusiness-session",
+    role_session_name: str = 'qbusiness-session',
 ) -> Dict:
     """Assume an IAM role using the identity context from the token.
 
@@ -229,7 +247,7 @@ async def assume_role_with_identity_context(
         {
             'Credentials': {
                 'AccessKeyId': 'string',
-                'SecretAccessKey': 'string',
+                'SecretAccessKey': 'string', # pragma: allowlist secret
                 'SessionToken': 'string',
                 'Expiration': datetime(2015, 1, 1)
             },
@@ -242,31 +260,31 @@ async def assume_role_with_identity_context(
     try:
         # Create boto3 client for STS
         aws_profile = os.environ.get('AWS_PROFILE', 'default')
-        session = boto3.Session(
-            region_name=idc_region,
-            profile_name=aws_profile
-        )
+        session = boto3.Session(region_name=idc_region, profile_name=aws_profile)
         client = session.client('sts')
-        
+
         response = client.assume_role(
             RoleArn=role_arn,
             RoleSessionName=role_session_name,
-            ProvidedContexts=[{
-                'ProviderArn': 'arn:aws:iam::aws:contextProvider/IdentityCenter',
-                'ContextAssertion': identity_context
-            }],
+            ProvidedContexts=[
+                {
+                    'ProviderArn': 'arn:aws:iam::aws:contextProvider/IdentityCenter',
+                    'ContextAssertion': identity_context,
+                }
+            ],
             Tags=[
                 {
                     'Key': 'qbusiness-dataaccessor:ExternalId',
-                    'Value': 'Test-Tenant' # Replace with your actual tenant ID variable
+                    'Value': 'Test-Tenant',  # Replace with your actual tenant ID variable
                 }
-            ]
+            ],
         )
-        
+
         return response
     except Exception as e:
-        logger.error(f"Error assuming role with identity context: {str(e)}")
+        logger.error(f'Error assuming role with identity context: {str(e)}')
         raise ValueError(str(e))
+
 
 @mcp.tool(name='SearchRelevantContent')
 async def search_relevant_content(
@@ -276,7 +294,7 @@ async def search_relevant_content(
     content_source: Optional[ContentSource] = None,
     max_results: Optional[int] = 3,
     next_token: Optional[str] = None,
-    qbuiness_region: str = "us-east-1",
+    qbuiness_region: str = 'us-east-1',
     aws_access_key_id: Optional[str] = None,
     aws_secret_access_key: Optional[str] = None,
     aws_session_token: Optional[str] = None,
@@ -343,7 +361,7 @@ async def search_relevant_content(
             region_name=qbuiness_region,
             aws_access_key_id=aws_access_key_id,
             aws_secret_access_key=aws_secret_access_key,
-            aws_session_token=aws_session_token
+            aws_session_token=aws_session_token,
         )
 
         # Convert models to dictionaries
@@ -367,18 +385,22 @@ async def search_relevant_content(
             attribute_filter=attribute_filter_dict,
             content_source=content_source_dict,
             max_results=max_results_int,
-            next_token=str(next_token) if next_token else None
+            next_token=str(next_token) if next_token else None,
         )
     except Exception as e:
-        logger.error(f"Error searching Q Business content: {str(e)}")
+        logger.error(f'Error searching Q Business content: {str(e)}')
         if not aws_access_key_id or not aws_secret_access_key or not aws_session_token:
-            raise ValueError("Missing AWS credentials. Please follow the authentication flow described in the tool documentation.")
+            raise ValueError(
+                'Missing AWS credentials. Please follow the authentication flow described in the tool documentation.'
+            )
         raise ValueError(str(e))
 
 
 def main():
     """Run the MCP server with CLI argument support."""
-    parser = argparse.ArgumentParser(description='An AWS Labs Model Context Protocol (MCP) server for amazon_qindex')
+    parser = argparse.ArgumentParser(
+        description='An AWS Labs Model Context Protocol (MCP) server for amazon_qindex'
+    )
     parser.add_argument('--sse', action='store_true', help='Use SSE transport')
     parser.add_argument('--port', type=int, default=8888, help='Port to run the server on')
 
@@ -394,4 +416,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
