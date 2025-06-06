@@ -370,13 +370,13 @@ async def search_relevant_content(
         # Convert models to dictionaries
         content_source_dict = None
         if content_source:
-            content_source_dict = content_source.dict(exclude_none=True)
+            content_source_dict = content_source.model_dump(exclude_none=True)
             if 'retriever' in content_source_dict:
                 content_source_dict = {'retriever': content_source_dict['retriever']}
 
         attribute_filter_dict = None
         if attribute_filter:
-            attribute_filter_dict = attribute_filter.dict(exclude_none=True)
+            attribute_filter_dict = attribute_filter.model_dump(exclude_none=True)
 
         # Ensure max_results is properly typed
         max_results_int = int(max_results) if max_results is not None else None

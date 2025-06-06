@@ -19,6 +19,10 @@ from awslabs.amazon_qindex_mcp_server.server import (
     authorize_qindex,
     create_token_with_iam,
     mcp,
+    ContentSource,
+    RetrieverContentSource,
+    AttributeFilter,
+    search_relevant_content,
 )
 
 
@@ -176,3 +180,104 @@ class TestCreateTokenWithIAM:
             await create_token_with_iam(
                 idc_application_arn='', redirect_uri='', code='', idc_region='', role_arn=''
             )
+
+class TestSearchRelevantContent:
+    """Tests for the SearchRelevantContent functionality."""
+
+    @pytest.mark.asyncio
+    async def test_search_relevant_content_success(self, mocker):
+        """Test successful content search."""
+        # Create proper Pydantic model instances
+        content_source = ContentSource(
+            retriever=RetrieverContentSource(retrieverId='test-retriever')
+        )
+        
+        attribute_filter = AttributeFilter(
+            andAllFilters=[]
+        )
+
+        test_data = {
+            'application_id': 'test-app-123',
+            'query_text': 'test query',
+            'attribute_filter': attribute_filter,  # Pydantic model instance
+            'content_source': content_source,      # Pydantic model instance
+            'max_results': 50,
+            'next_token': 'next-page-token',
+            'qbuiness_region': 'us-east-1',
+            'aws_access_key_id': 'test-key-id',
+            'aws_secret_access_key': 'test-secret-key',
+            'aws_session_token': 'test-session-token'
+        }
+
+        # Mock QBusinessClient
+        mock_client = mocker.Mock()
+        mock_response = {
+            'nextToken': 'next-token',
+            'relevantContent': [{
+                'content': 'test content',
+                'documentId': 'doc-123',
+                'documentTitle': 'Test Document'
+            }]
+        }
+        mock_client.search_relevant_content.return_value = mock_response
+        
+        # Mock the QBusinessClient constructor
+        mocker.patch('awslabs.amazon_qindex_mcp_server.server.QBusinessClient', return_value=mock_client)
+        
+        # Call the tool function directly
+        from awslabs.amazon_qindex_mcp_server.server import search_relevant_content
+        response = await search_relevant_content(**test_data)
+        
+        assert response == mock_response
+        mock_client.search_relevant_content.assert_called_once()
+
+class TestServerErrorHandling:
+    """Tests for server error handling scenarios."""
+
+    @pytest.mark.asyncio
+    async def test_invalid_parameters(self):
+        """Test handling of invalid parameters."""
+        from awslabs.amazon_qindex_mcp_server.server import search_relevant_content
+        
+        with pytest.raises(ValueError):
+            await search_relevant_content(
+                application_id=None,
+                query_text='test',
+                qbuiness_region='us-east-1'
+            )
+
+    @pytest.mark.asyncio
+    async def test_missing_credentials(self):
+        """Test handling of missing AWS credentials."""
+        from awslabs.amazon_qindex_mcp_server.server import search_relevant_content
+        
+        with pytest.raises(ValueError) as exc_info:
+            await search_relevant_content(
+                application_id='test-app',
+                query_text='test',
+                qbuiness_region='us-east-1'
+                # Missing AWS credentials
+            )
+        assert 'Missing AWS credentials' in str(exc_info.value)
+
+class TestClientConfiguration:
+    """Tests for client configuration and initialization."""
+
+    def test_context_initialization(self):
+        """Test context initialization."""
+        context = mcp.get_context()
+        assert context is not None
+
+    @pytest.mark.asyncio
+    async def test_context_handling(self, mocker):
+        """Test context handling."""
+        mock_session = mocker.Mock()
+        mocker.patch('boto3.Session', return_value=mock_session)
+        
+        context = mcp.get_context()
+        assert context is not None
+
+    def test_context_error_handling(self):
+        """Test context error handling."""
+        with pytest.raises(Exception):
+            mcp.get_context(invalid_param="invalid")
