@@ -17,7 +17,9 @@
 import pytest
 from botocore.exceptions import ClientError
 from unittest.mock import Mock, patch
+from typing import Dict, Any, cast
 from awslabs.amazon_qindex_mcp_server.clients import QBusinessClient, QBusinessClientError
+
 
 class TestQBusinessClient:
     @pytest.fixture
@@ -159,17 +161,25 @@ class TestQBusinessClient:
         # Set client.client to our mock
         client.client = mock_client
 
-        error_response = {
+        error_response = cast(Any, {
             'Error': {
                 'Code': 'ValidationException',
                 'Message': 'Test error message'
+            },
+            'ResponseMetadata': {
+                'RequestId': 'test-request-id',
+                'HostId': 'test-host',
+                'HTTPStatusCode': 400,
+                'HTTPHeaders': {},
+                'RetryAttempts': 0
             }
-        }
+        })
         
         mock_client.search_relevant_content = Mock(side_effect=ClientError(
             error_response,
             'SearchRelevantContent'
         ))
+
 
         with pytest.raises(QBusinessClientError, match='Validation error: Test error message'):
             client.search_relevant_content(
@@ -223,12 +233,19 @@ class TestQBusinessClient:
         }
 
         for code, expected_prefix in error_codes.items():
-            error_response = {
+            error_response = cast(Any, {
                 'Error': {
                     'Code': code,
                     'Message': 'Test message'
+                },
+                'ResponseMetadata': {
+                    'RequestId': 'test-request-id',
+                    'HostId': 'test-host',
+                    'HTTPStatusCode': 400,
+                    'HTTPHeaders': {},
+                    'RetryAttempts': 0
                 }
-            }
+            })
             error = ClientError(error_response, 'TestOperation')
 
             with pytest.raises(QBusinessClientError) as exc_info:
