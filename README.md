@@ -48,7 +48,7 @@ A suite of specialized MCP servers that help you get the most out of AWS, wherev
     - [AWS Serverless MCP Server](#aws-serverless-mcp-server)
     - [Amazon ECS MCP Server](#amazon-ecs-mcp-server)
     - [Finch MCP Server](#finch-mcp-server)
-
+    - [AWS Bedrock Data Automation MCP Server](#aws-bedrock-data-automation-mcp-server)
     - [Use Cases for the Servers](#use-cases-for-the-servers)
   - [Installation and Setup](#installation-and-setup)
     - [Running MCP servers in containers](#running-mcp-servers-in-containers)
@@ -540,6 +540,19 @@ A server for interacting with AWS Serverless
 
 [Learn more](src/aws-serverless-mcp-server/README.md) | [Documentation](https://awslabs.github.io/mcp/servers/aws-serverless-mcp-server/)
 
+### AWS Bedrock Data Automation MCP Server
+
+[![PyPI version](https://img.shields.io/pypi/v/awslabs.aws-bedrock-data-automation-mcp-server.svg)](https://pypi.org/project/awslabs.aws-bedrock-data-automation-mcp-server/)
+
+A Model Context Protocol (MCP) server for Amazon Bedrock Data Automation that enables AI assistants to analyze documents, images, videos, and audio files using Amazon Bedrock Data Automation projects.
+
+- Project Management: List and get details about Bedrock Data Automation projects
+- Asset Analysis: Extract insights from unstructured content using Bedrock Data Automation
+- Support for Multiple Content Types: Process documents, images, videos, and audio files
+- Integration with Amazon S3: Seamlessly upload and download assets and results
+
+[Learn more](src/aws-bedrock-data-automation-mcp-server/README.md) | [Documentation](https://awslabs.github.io/mcp/servers/aws-bedrock-data-automation-mcp-server/)
+
 ## MCP AWS Lambda Handler Module
 
 A Python library for creating serverless HTTP handlers for the Model Context Protocol (MCP) using AWS Lambda. This module provides a flexible framework for building MCP HTTP endpoints with pluggable session management, including built-in DynamoDB support.
@@ -728,7 +741,7 @@ Example configuration for Amazon Q CLI MCP (`~/.aws/amazonq/mcp.json`):
         "awslabs.cfn-mcp-server@latest"
       ],
       "env": {
-        "AWS_PROFILE": "your-aws-profile",
+        "AWS_PROFILE": "your-aws-profile"
       },
       "disabled": false,
       "autoApprove": []
