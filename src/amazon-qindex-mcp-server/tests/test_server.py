@@ -205,7 +205,7 @@ class TestSearchRelevantContent:
             'next_token': 'next-page-token',
             'qbuiness_region': 'us-east-1',
             'aws_access_key_id': 'test-key-id',
-            'aws_secret_access_key': 'test-secret-key',
+            'aws_secret_access_key': 'test-secret-key', # pragma: allowlist secret
             'aws_session_token': 'test-session-token'
         }
 

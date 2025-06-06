@@ -27,7 +27,7 @@ class TestQBusinessClient:
         return QBusinessClient(
             region_name='us-east-1',
             aws_access_key_id='test-key',
-            aws_secret_access_key='test-secret',
+            aws_secret_access_key='test-secret', # pragma: allowlist secret
             aws_session_token='test-token'
         )
 
@@ -47,12 +47,12 @@ class TestQBusinessClient:
         client = QBusinessClient(
             region_name='us-east-1',
             aws_access_key_id='test-key',
-            aws_secret_access_key='test-secret',
+            aws_secret_access_key='test-secret', # pragma: allowlist secret
             aws_session_token='test-token'
         )
         mock_session.assert_called_once_with(
             aws_access_key_id='test-key',
-            aws_secret_access_key='test-secret',
+            aws_secret_access_key='test-secret', # pragma: allowlist secret
             aws_session_token='test-token',
             region_name='us-east-1'
         )
@@ -63,7 +63,7 @@ class TestQBusinessClient:
         client = QBusinessClient(region_name='us-east-1')
         mock_session.assert_called_once_with(
             aws_access_key_id=None,
-            aws_secret_access_key=None,
+            aws_secret_access_key=None, # pragma: allowlist secret
             aws_session_token=None,
             region_name='us-east-1'
         )
