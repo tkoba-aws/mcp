@@ -15,15 +15,18 @@
 """Tests for the sub clients file on amazon-qindex MCP Server."""
 
 import pytest
-from botocore.exceptions import ClientError
-from unittest.mock import Mock, patch
-from typing import Dict, Any, cast
 from awslabs.amazon_qindex_mcp_server.clients import QBusinessClient, QBusinessClientError
+from botocore.exceptions import ClientError
+from typing import Any, cast
+from unittest.mock import Mock, patch
 
 
 class TestQBusinessClient:
+    """Test cases for the QBusinessClient class."""
+
     @pytest.fixture
     def client(self):
+        """Return a QBusinessClient instance for testing."""
         return QBusinessClient(
             region_name='us-east-1',
             aws_access_key_id='test-key',
@@ -33,7 +36,7 @@ class TestQBusinessClient:
 
     @pytest.fixture
     def mock_boto3_session(self):
-        """Create a mock boto3 session with proper parameter validation bypass"""
+        """Create a mock boto3 session with proper parameter validation bypass."""
         with patch('boto3.Session') as mock_session:
             mock_client = Mock()
             # Prevent parameter validation from boto3
@@ -42,7 +45,7 @@ class TestQBusinessClient:
             yield mock_session, mock_client
 
     def test_init_with_credentials(self, mock_boto3_session):
-        """Test client initialization with credentials"""
+        """Test client initialization with credentials."""
         mock_session, _ = mock_boto3_session
         client = QBusinessClient(
             region_name='us-east-1',
@@ -50,6 +53,7 @@ class TestQBusinessClient:
             aws_secret_access_key='test-secret', # pragma: allowlist secret
             aws_session_token='test-token'
         )
+        assert isinstance(client, QBusinessClient)
         mock_session.assert_called_once_with(
             aws_access_key_id='test-key',
             aws_secret_access_key='test-secret', # pragma: allowlist secret
@@ -58,9 +62,10 @@ class TestQBusinessClient:
         )
 
     def test_init_without_credentials(self, mock_boto3_session):
-        """Test client initialization without credentials"""
+        """Test client initialization without credentials."""
         mock_session, _ = mock_boto3_session
         client = QBusinessClient(region_name='us-east-1')
+        assert isinstance(client, QBusinessClient)
         mock_session.assert_called_once_with(
             aws_access_key_id=None,
             aws_secret_access_key=None, # pragma: allowlist secret
@@ -69,7 +74,7 @@ class TestQBusinessClient:
         )
 
     def test_search_relevant_content_success(self, client, mock_boto3_session):
-        """Test successful search_relevant_content call"""
+        """Test successful search_relevant_content call."""
         # Get the mocked session and client
         mock_session, mock_client = mock_boto3_session
 
@@ -130,7 +135,7 @@ class TestQBusinessClient:
         )
 
     def test_search_relevant_content_invalid_response(self, client, mock_boto3_session):
-        """Test search_relevant_content with invalid response"""
+        """Test search_relevant_content with invalid response."""
         _, mock_client = mock_boto3_session
 
         # Configure mock to return empty response
@@ -155,12 +160,10 @@ class TestQBusinessClient:
         mock_client.search_relevant_content.assert_called_once()
 
     def test_search_relevant_content_client_error(self, client, mock_boto3_session):
-        """Test search_relevant_content with ClientError"""
+        """Test search_relevant_content with ClientError."""
         _, mock_client = mock_boto3_session
-        
         # Set client.client to our mock
         client.client = mock_client
-
         error_response = cast(Any, {
             'Error': {
                 'Code': 'ValidationException',
@@ -174,12 +177,10 @@ class TestQBusinessClient:
                 'RetryAttempts': 0
             }
         })
-        
         mock_client.search_relevant_content = Mock(side_effect=ClientError(
             error_response,
             'SearchRelevantContent'
         ))
-
 
         with pytest.raises(QBusinessClientError, match='Validation error: Test error message'):
             client.search_relevant_content(
@@ -197,15 +198,12 @@ class TestQBusinessClient:
         mock_client.search_relevant_content.assert_called_once()
 
     def test_search_relevant_content_unexpected_error(self, client, mock_boto3_session):
-        """Test search_relevant_content with unexpected error"""
+        """Test search_relevant_content with unexpected error."""
         _, mock_client = mock_boto3_session
-        
         # Set client.client to our mock
         client.client = mock_client
-        
         # Configure mock to raise an unexpected exception
         mock_client.search_relevant_content = Mock(side_effect=Exception('Unexpected test error'))
-
         with pytest.raises(QBusinessClientError, match='Unexpected error: Unexpected test error'):
             client.search_relevant_content(
                 application_id='12345678-1234-5678-1234-567812345678',
@@ -222,7 +220,7 @@ class TestQBusinessClient:
         mock_client.search_relevant_content.assert_called_once()
 
     def test_handle_client_error_mapping(self, client):
-        """Test _handle_client_error with different error codes"""
+        """Test _handle_client_error with different error codes."""
         error_codes = {
             'AccessDeniedException': 'Access denied',
             'ValidationException': 'Validation error',
@@ -247,9 +245,7 @@ class TestQBusinessClient:
                 }
             })
             error = ClientError(error_response, 'TestOperation')
-
             with pytest.raises(QBusinessClientError) as exc_info:
                 client._handle_client_error(error, 'TestOperation')
-            
             assert expected_prefix in str(exc_info.value)
             assert 'Test message' in str(exc_info.value)
