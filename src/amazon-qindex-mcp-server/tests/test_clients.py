@@ -30,8 +30,8 @@ class TestQBusinessClient:
         return QBusinessClient(
             region_name='us-east-1',
             aws_access_key_id='test-key',
-            aws_secret_access_key='test-secret', # pragma: allowlist secret
-            aws_session_token='test-token'
+            aws_secret_access_key='test-secret',  # pragma: allowlist secret
+            aws_session_token='test-token',
         )
 
     @pytest.fixture
@@ -50,15 +50,15 @@ class TestQBusinessClient:
         client = QBusinessClient(
             region_name='us-east-1',
             aws_access_key_id='test-key',
-            aws_secret_access_key='test-secret', # pragma: allowlist secret
-            aws_session_token='test-token'
+            aws_secret_access_key='test-secret',  # pragma: allowlist secret
+            aws_session_token='test-token',
         )
         assert isinstance(client, QBusinessClient)
         mock_session.assert_called_once_with(
             aws_access_key_id='test-key',
-            aws_secret_access_key='test-secret', # pragma: allowlist secret
+            aws_secret_access_key='test-secret',  # pragma: allowlist secret
             aws_session_token='test-token',
-            region_name='us-east-1'
+            region_name='us-east-1',
         )
 
     def test_init_without_credentials(self, mock_boto3_session):
@@ -68,9 +68,9 @@ class TestQBusinessClient:
         assert isinstance(client, QBusinessClient)
         mock_session.assert_called_once_with(
             aws_access_key_id=None,
-            aws_secret_access_key=None, # pragma: allowlist secret
+            aws_secret_access_key=None,  # pragma: allowlist secret
             aws_session_token=None,
-            region_name='us-east-1'
+            region_name='us-east-1',
         )
 
     def test_search_relevant_content_success(self, client, mock_boto3_session):
@@ -80,13 +80,8 @@ class TestQBusinessClient:
 
         # Set up the mock response
         mock_response = {
-            'relevantContent': [
-                {
-                    'content': 'test content',
-                    'documentId': 'doc-123'
-                }
-            ],
-            'nextToken': 'next-token'
+            'relevantContent': [{'content': 'test content', 'documentId': 'doc-123'}],
+            'nextToken': 'next-token',
         }
 
         # Configure the mock client to return our response
@@ -97,19 +92,10 @@ class TestQBusinessClient:
         response = client.search_relevant_content(
             application_id='12345678-1234-5678-1234-567812345678',
             query_text='test query',
-            attribute_filter={
-                'equalsTo': {
-                    'name': 'test',
-                    'value': {'stringValue': 'test'}
-                }
-            },
-            content_source={
-                'retriever': {
-                    'retrieverId': '12345678-1234-5678-1234-567812345678'
-                }
-            },
+            attribute_filter={'equalsTo': {'name': 'test', 'value': {'stringValue': 'test'}}},
+            content_source={'retriever': {'retrieverId': '12345678-1234-5678-1234-567812345678'}},
             max_results=10,
-            next_token='token'
+            next_token='token',
         )
 
         # Verify the response
@@ -119,19 +105,10 @@ class TestQBusinessClient:
         mock_client.search_relevant_content.assert_called_once_with(
             applicationId='12345678-1234-5678-1234-567812345678',
             queryText='test query',
-            attributeFilter={
-                'equalsTo': {
-                    'name': 'test',
-                    'value': {'stringValue': 'test'}
-                }
-            },
-            contentSource={
-                'retriever': {
-                    'retrieverId': '12345678-1234-5678-1234-567812345678'
-                }
-            },
+            attributeFilter={'equalsTo': {'name': 'test', 'value': {'stringValue': 'test'}}},
+            contentSource={'retriever': {'retrieverId': '12345678-1234-5678-1234-567812345678'}},
             maxResults=10,
-            nextToken='token'
+            nextToken='token',
         )
 
     def test_search_relevant_content_invalid_response(self, client, mock_boto3_session):
@@ -144,7 +121,9 @@ class TestQBusinessClient:
         # Set client.client to our mock
         client.client = mock_client
 
-        with pytest.raises(QBusinessClientError, match='Invalid response received from AWS Q Business'):
+        with pytest.raises(
+            QBusinessClientError, match='Invalid response received from AWS Q Business'
+        ):
             client.search_relevant_content(
                 application_id='12345678-1234-5678-1234-567812345678',
                 query_text='test query',
@@ -153,7 +132,7 @@ class TestQBusinessClient:
                         # Use a proper 36-character UUID format for retrieverId
                         'retrieverId': '12345678-1234-5678-1234-567812345678'
                     }
-                }
+                },
             )
 
         # Verify the mock was called with correct parameters
@@ -164,23 +143,22 @@ class TestQBusinessClient:
         _, mock_client = mock_boto3_session
         # Set client.client to our mock
         client.client = mock_client
-        error_response = cast(Any, {
-            'Error': {
-                'Code': 'ValidationException',
-                'Message': 'Test error message'
+        error_response = cast(
+            Any,
+            {
+                'Error': {'Code': 'ValidationException', 'Message': 'Test error message'},
+                'ResponseMetadata': {
+                    'RequestId': 'test-request-id',
+                    'HostId': 'test-host',
+                    'HTTPStatusCode': 400,
+                    'HTTPHeaders': {},
+                    'RetryAttempts': 0,
+                },
             },
-            'ResponseMetadata': {
-                'RequestId': 'test-request-id',
-                'HostId': 'test-host',
-                'HTTPStatusCode': 400,
-                'HTTPHeaders': {},
-                'RetryAttempts': 0
-            }
-        })
-        mock_client.search_relevant_content = Mock(side_effect=ClientError(
-            error_response,
-            'SearchRelevantContent'
-        ))
+        )
+        mock_client.search_relevant_content = Mock(
+            side_effect=ClientError(error_response, 'SearchRelevantContent')
+        )
 
         with pytest.raises(QBusinessClientError, match='Validation error: Test error message'):
             client.search_relevant_content(
@@ -191,7 +169,7 @@ class TestQBusinessClient:
                         # Use a proper 36-character UUID format for retrieverId
                         'retrieverId': '12345678-1234-5678-1234-567812345678'
                     }
-                }
+                },
             )
 
         # Verify the mock was called with correct parameters
@@ -213,7 +191,7 @@ class TestQBusinessClient:
                         # Use a proper 36-character UUID format for retrieverId
                         'retrieverId': '12345678-1234-5678-1234-567812345678'
                     }
-                }
+                },
             )
 
         # Verify the mock was called with correct parameters
@@ -227,23 +205,23 @@ class TestQBusinessClient:
             'ThrottlingException': 'Request throttled',
             'InternalServerException': 'Internal server error',
             'ResourceNotFoundException': 'Resource not found',
-            'UnknownException': 'AWS Q Business error'
+            'UnknownException': 'AWS Q Business error',
         }
 
         for code, expected_prefix in error_codes.items():
-            error_response = cast(Any, {
-                'Error': {
-                    'Code': code,
-                    'Message': 'Test message'
+            error_response = cast(
+                Any,
+                {
+                    'Error': {'Code': code, 'Message': 'Test message'},
+                    'ResponseMetadata': {
+                        'RequestId': 'test-request-id',
+                        'HostId': 'test-host',
+                        'HTTPStatusCode': 400,
+                        'HTTPHeaders': {},
+                        'RetryAttempts': 0,
+                    },
                 },
-                'ResponseMetadata': {
-                    'RequestId': 'test-request-id',
-                    'HostId': 'test-host',
-                    'HTTPStatusCode': 400,
-                    'HTTPHeaders': {},
-                    'RetryAttempts': 0
-                }
-            })
+            )
             error = ClientError(error_response, 'TestOperation')
             with pytest.raises(QBusinessClientError) as exc_info:
                 client._handle_client_error(error, 'TestOperation')

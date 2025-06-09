@@ -413,8 +413,10 @@ def main():
     if args.sse:
         mcp.settings.port = args.port
         mcp.run(transport='sse')
+
     else:
         mcp.run()
+
 
 if __name__ == '__main__':
     main()

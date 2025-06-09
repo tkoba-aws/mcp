@@ -180,6 +180,7 @@ class TestCreateTokenWithIAM:
                 idc_application_arn='', redirect_uri='', code='', idc_region='', role_arn=''
             )
 
+
 class TestSearchRelevantContent:
     """Tests for the SearchRelevantContent functionality."""
 
@@ -190,39 +191,43 @@ class TestSearchRelevantContent:
         content_source = ContentSource(
             retriever=RetrieverContentSource(retrieverId='test-retriever')
         )
-        attribute_filter = AttributeFilter(
-            andAllFilters=[]
-        )
+        attribute_filter = AttributeFilter(andAllFilters=[])
         test_data = {
             'application_id': 'test-app-123',
             'query_text': 'test query',
             'attribute_filter': attribute_filter,  # Pydantic model instance
-            'content_source': content_source,      # Pydantic model instance
+            'content_source': content_source,  # Pydantic model instance
             'max_results': 50,
             'next_token': 'next-page-token',
             'qbuiness_region': 'us-east-1',
             'aws_access_key_id': 'test-key-id',
-            'aws_secret_access_key': 'test-secret-key', # pragma: allowlist secret
-            'aws_session_token': 'test-session-token'
+            'aws_secret_access_key': 'test-secret-key',  # pragma: allowlist secret
+            'aws_session_token': 'test-session-token',
         }
         # Mock QBusinessClient
         mock_client = mocker.Mock()
         mock_response = {
             'nextToken': 'next-token',
-            'relevantContent': [{
-                'content': 'test content',
-                'documentId': 'doc-123',
-                'documentTitle': 'Test Document'
-            }]
+            'relevantContent': [
+                {
+                    'content': 'test content',
+                    'documentId': 'doc-123',
+                    'documentTitle': 'Test Document',
+                }
+            ],
         }
         mock_client.search_relevant_content.return_value = mock_response
         # Mock the QBusinessClient constructor
-        mocker.patch('awslabs.amazon_qindex_mcp_server.server.QBusinessClient', return_value=mock_client)
+        mocker.patch(
+            'awslabs.amazon_qindex_mcp_server.server.QBusinessClient', return_value=mock_client
+        )
         # Call the tool function directly
         from awslabs.amazon_qindex_mcp_server.server import search_relevant_content
+
         response = await search_relevant_content(**test_data)
         assert response == mock_response
         mock_client.search_relevant_content.assert_called_once()
+
 
 class TestServerErrorHandling:
     """Tests for server error handling scenarios."""
@@ -231,25 +236,26 @@ class TestServerErrorHandling:
     async def test_invalid_parameters(self):
         """Test handling of invalid parameters."""
         from awslabs.amazon_qindex_mcp_server.server import search_relevant_content
+
         with pytest.raises(ValueError):
             await search_relevant_content(
-                application_id=None,
-                query_text='test',
-                qbuiness_region='us-east-1'
+                application_id=None, query_text='test', qbuiness_region='us-east-1'
             )
 
     @pytest.mark.asyncio
     async def test_missing_credentials(self):
         """Test handling of missing AWS credentials."""
         from awslabs.amazon_qindex_mcp_server.server import search_relevant_content
+
         with pytest.raises(ValueError) as exc_info:
             await search_relevant_content(
                 application_id='test-app',
                 query_text='test',
-                qbuiness_region='us-east-1'
+                qbuiness_region='us-east-1',
                 # Missing AWS credentials
             )
         assert 'Missing AWS credentials' in str(exc_info.value)
+
 
 class TestClientConfiguration:
     """Tests for client configuration and initialization."""
