@@ -19,6 +19,7 @@ from awslabs.amazon_qindex_mcp_server.server import (
     AttributeFilter,
     ContentSource,
     RetrieverContentSource,
+    assume_role_with_identity_context,
     authorize_qindex,
     create_token_with_iam,
     mcp,
@@ -277,3 +278,99 @@ class TestClientConfiguration:
         """Test context error handling."""
         context = mcp.get_context()
         assert context is not None
+
+
+class TestAssumeRoleWithIdentityContext:
+    """Tests for the assume_role_with_identity_context MCP tool."""
+
+    TEST_DATA = {
+        'role_arn': 'arn:aws:iam::123456789012:role/test-role',
+        'identity_context': 'test-context',
+        'idc_region': 'us-west-2',
+        'role_session_name': 'test-session',
+    }
+
+    @pytest.mark.asyncio
+    async def test_assume_role_with_identity_context_success(self, mocker):
+        """Test successful role assumption with identity context."""
+        mock_session = mocker.Mock()
+        mock_sts_client = mocker.Mock()
+
+        mock_assume_role_response = {
+            'Credentials': {
+                'AccessKeyId': 'test_access_key',
+                'SecretAccessKey': 'test_secret_key',  # pragma: allowlist secret
+                'SessionToken': 'test_session_token',
+                'Expiration': '2025-06-09T00:00:00Z',
+            },
+            'AssumedRoleUser': {'AssumedRoleId': 'test_role_id', 'Arn': 'test_role_arn'},
+        }
+
+        mock_session.client.return_value = mock_sts_client
+        mock_sts_client.assume_role.return_value = mock_assume_role_response
+        mocker.patch('boto3.Session', return_value=mock_session)
+
+        response = await assume_role_with_identity_context(**self.TEST_DATA)
+
+        assert response == mock_assume_role_response
+        mock_sts_client.assume_role.assert_called_once_with(
+            RoleArn=self.TEST_DATA['role_arn'],
+            RoleSessionName=self.TEST_DATA['role_session_name'],
+            ProvidedContexts=[
+                {
+                    'ProviderArn': 'arn:aws:iam::aws:contextProvider/IdentityCenter',
+                    'ContextAssertion': self.TEST_DATA['identity_context'],
+                }
+            ],
+            Tags=[{'Key': 'qbusiness-dataaccessor:ExternalId', 'Value': 'Test-Tenant'}],
+        )
+
+    @pytest.mark.asyncio
+    async def test_assume_role_with_identity_context_error(self, mocker):
+        """Test error handling in role assumption."""
+        mock_session = mocker.Mock()
+        mock_session.client.side_effect = Exception('AWS Error')
+        mocker.patch('boto3.Session', return_value=mock_session)
+
+        with pytest.raises(ValueError) as exc_info:
+            await assume_role_with_identity_context(**self.TEST_DATA)
+        assert 'AWS Error' in str(exc_info.value)
+
+
+class TestMainFunction:
+    """Tests for the main() function."""
+
+    def test_main_with_sse(self, mocker):
+        """Test main function with SSE transport."""
+        mock_argparse = mocker.patch('argparse.ArgumentParser')
+        mock_args = mocker.Mock()
+        mock_args.sse = True
+        mock_args.port = 8888
+        mock_argparse.return_value.parse_args.return_value = mock_args
+
+        mock_mcp = mocker.Mock()
+        mocker.patch('awslabs.amazon_qindex_mcp_server.server.mcp', mock_mcp)
+
+        from awslabs.amazon_qindex_mcp_server.server import main
+
+        main()
+
+        assert mock_mcp.settings.port == 8888
+        mock_mcp.run.assert_called_once_with(transport='sse')
+
+    def test_main_without_sse(self, mocker):
+        """Test main function without SSE transport."""
+        mock_argparse = mocker.patch('argparse.ArgumentParser')
+        mock_args = mocker.Mock()
+        mock_args.sse = False
+        mock_args.port = 8888
+        mock_argparse.return_value.parse_args.return_value = mock_args
+
+        mock_mcp = mocker.Mock()
+        mocker.patch('awslabs.amazon_qindex_mcp_server.server.mcp', mock_mcp)
+
+        from awslabs.amazon_qindex_mcp_server.server import main
+
+        main()
+
+        mock_mcp.run.assert_called_once_with()
