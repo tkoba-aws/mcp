@@ -12,47 +12,6 @@ A suite of specialized MCP servers that help you get the most out of AWS, wherev
 - [AWS MCP Servers](#aws-mcp-servers)
   - [Table of Contents](#table-of-contents)
   - [What is the Model Context Protocol (MCP) and how does it work with AWS MCP Servers?](#what-is-the-model-context-protocol-mcp-and-how-does-it-work-with-aws-mcp-servers)
-<<<<<<< main
-    - [Why MCP Servers?](#why-mcp-servers)
-  - [Available Servers](#available-servers)
-    - [Core MCP Server](#core-mcp-server)
-    - [AWS Documentation MCP Server](#aws-documentation-mcp-server)
-    - [Amazon Bedrock Knowledge Bases Retrieval MCP Server](#amazon-bedrock-knowledge-bases-retrieval-mcp-server)
-    - [AWS Kendra Index MCP Server](#amazon-kendra-index-mcp-server)
-    - [Amazon Q index MCP Server](#amazon-q-index-mcp-server)
-    - [AWS CDK MCP Server](#aws-cdk-mcp-server)
-    - [Cost Analysis MCP Server](#cost-analysis-mcp-server)
-    - [Amazon Nova Canvas MCP Server](#amazon-nova-canvas-mcp-server)
-    - [AWS Diagram MCP Server](#aws-diagram-mcp-server)
-    - [AWS CloudFormation MCP Server](#aws-cloudformation-mcp-server)
-    - [AWS Lambda MCP Server](#aws-lambda-tool-mcp-server)
-    - [Amazon SNS / SQS MCP Server](#amazon-sns--sqs-mcp-server)
-    - [AWS Step Functions Tool MCP Server](#aws-step-functions-tool-mcp-server)
-    - [AWS Terraform MCP Server](#aws-terraform-mcp-server)
-    - [Frontend MCP Server](#frontend-mcp-server)
-    - [Amazon ElastiCache/MemoryDB Valkey for MCP Server](#amazon-elasticache--memorydb-for-valkey-mcp-server)
-    - [Amazon ElastiCache Memcached for MCP Server](#amazon-elasticache-for-memcached-mcp-server)
-    - [AWS Location Service MCP Server](#aws-location-service-mcp-server)
-    - [Git Repo Research MCP Server](#git-repo-research-mcp-server)
-    - [Code Documentation Generation MCP Server](#code-documentation-generation-mcp-server)
-    - [Amazon Aurora MySql MCP Server](#amazon-aurora-mysql-mcp-server)
-    - [Amazon Aurora Postgres MCP Server](#amazon-aurora-postgres-mcp-server)
-    - [Amazon MQ MCP Server](#amazon-mq-mcp-server)
-    - [Synthetic Data MCP Server](#synthetic-data-mcp-server)
-    - [Amazon Aurora DSQL MCP Server](#amazon-aurora-dsql-mcp-server)
-    - [Amazon Cloudwatch Logs MCP Server](#amazon-cloudwatch-logs-mcp-server)
-    - [Amazon DynamoDB MCP Server](#amazon-dynamodb-mcp-server)
-    - [Amazon Keyspaces MCP Server](#amazon-keyspaces-mcp-server)
-    - [Amazon Neptune MCP Server](#amazon-neptune-mcp-server)
-    - [Amazon DocumentDB MCP Server](#amazon-documentdb-mcp-server)
-    - [Amazon EKS MCP Server](#amazon-eks-mcp-server)
-    - [AWS Serverless MCP Server](#aws-serverless-mcp-server)
-    - [Amazon ECS MCP Server](#amazon-ecs-mcp-server)
-    - [AWS Cost Explorer MCP Server](#aws-cost-explorer-mcp-server)
-    - [Finch MCP Server](#finch-mcp-server)
-    - [AWS Bedrock Data Automation MCP Server](#aws-bedrock-data-automation-mcp-server)
-    - [Use Cases for the Servers](#use-cases-for-the-servers)
-=======
   - [Server Sent Events Support Removal](#server-sent-events-support-removal)
     - [Why AWS MCP Servers?](#why-aws-mcp-servers)
   - [Available MCP Servers](#available-mcp-servers)
@@ -88,7 +47,6 @@ A suite of specialized MCP servers that help you get the most out of AWS, wherev
         - [Operations \& Monitoring](#operations--monitoring)
   - [MCP AWS Lambda Handler Module](#mcp-aws-lambda-handler-module)
   - [Use Cases for the Servers](#use-cases-for-the-servers)
->>>>>>> main
   - [Installation and Setup](#installation-and-setup)
     - [Running MCP servers in containers](#running-mcp-servers-in-containers)
     - [Getting Started with Cline and Amazon Bedrock](#getting-started-with-cline-and-amazon-bedrock)
@@ -182,22 +140,7 @@ Enhance AI applications with knowledge retrieval, content generation, and ML cap
 - **[Amazon Nova Canvas MCP Server](src/nova-canvas-mcp-server/)** - AI image generation with text and color guidance
 - **[Amazon Bedrock Data Automation MCP Server](src/aws-bedrock-data-automation-mcp-server/)** - Analyze documents, images, videos, and audio files
 
-<<<<<<< main
-### Amazon Q index MCP Server
-
-[![PyPI version](https://img.shields.io/pypi/v/awslabs.amazon-qindex-mcp-server.svg)](https://pypi.org/project/awslabs.amazon-qindex-mcp-server/)
-
-A server for accessing Amazon Q index and retrieve relevent data for ISVs (approved data accessors)
-
-- Query Amazon Q indexes with natural language to give enterprise data as RAG context to ISV's AI tool
-
-[Learn more](src/amazon-qindex-mcp-server/README.md)
-
-
-### Amazon Bedrock Knowledge Bases Retrieval MCP Server
-=======
 #### 📊 Data & Analytics
->>>>>>> main
 
 Work with databases, caching systems, and data processing workflows.
 
