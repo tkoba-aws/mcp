@@ -137,6 +137,7 @@ Enhance AI applications with knowledge retrieval, content generation, and ML cap
 
 - **[Amazon Bedrock Knowledge Bases Retrieval MCP Server](src/bedrock-kb-retrieval-mcp-server/)** - Query enterprise knowledge bases with citation support
 - **[Amazon Kendra Index MCP Server](src/amazon-kendra-index-mcp-server/)** - Enterprise search and RAG enhancement
+- **[Amazon Q index MCP Server](src/amazon-qindex-mcp-server/)** - Data accessors to search through enterprise's Q index
 - **[Amazon Nova Canvas MCP Server](src/nova-canvas-mcp-server/)** - AI image generation with text and color guidance
 - **[Amazon Bedrock Data Automation MCP Server](src/aws-bedrock-data-automation-mcp-server/)** - Analyze documents, images, videos, and audio files
 
