@@ -14,7 +14,6 @@
 
 """awslabs amazon-qindex MCP Server implementation."""
 
-import argparse
 import boto3
 import os
 import sys
@@ -106,7 +105,7 @@ AttributeFilter.model_rebuild()
 # Initialize MCP server
 mcp = FastMCP(
     'awslabs.amazon-qindex-mcp-server',
-    instructions="Amazon Q index for ISVs MCP server provides access to your customers' enterprise data into your applications. Here are the key details:",
+    instructions="Amazon Q index for ISVs MCP server provides access to your customers' enterprise data into your applications.",
     dependencies=[
         'pydantic',
         'loguru',
@@ -117,10 +116,16 @@ mcp = FastMCP(
 
 @mcp.tool(name='AuthorizeQIndex')
 async def authorize_qindex(
-    idc_region: str,
-    isv_redirect_url: str,
-    oauth_state: str,
-    idc_application_arn: str,
+    idc_region: str = Field(
+        description='The AWS region for IAM Identity Center (e.g., us-west-2)'
+    ),
+    isv_redirect_url: str = Field(
+        description='The redirect URL registered during ISV registration'
+    ),
+    oauth_state: str = Field(description='Random string to prevent CSRF attacks'),
+    idc_application_arn: str = Field(
+        description='The Amazon Q Business application ID provided by the customer'
+    ),
 ) -> Dict:
     """Generate the OIDC authorization URL for Q index authentication.
 
@@ -157,11 +162,11 @@ async def authorize_qindex(
 
 @mcp.tool(name='CreateTokenWithIAM')
 async def create_token_with_iam(
-    idc_application_arn: str,
-    redirect_uri: str,
-    code: str,
-    idc_region: str,
-    role_arn: str,
+    idc_application_arn: str = Field(description='The Amazon Q Business application ID'),
+    redirect_uri: str = Field(description='The redirect URL registered during ISV registration'),
+    code: str = Field(description='The authorization code received from OIDC endpoint'),
+    idc_region: str = Field(description='The AWS region for IAM Identity Center'),
+    role_arn: str = Field(description='The ARN of the IAM role to assume'),
 ) -> Dict:
     """Get a token using the authorization code through IAM.
 
@@ -230,10 +235,14 @@ async def create_token_with_iam(
 
 @mcp.tool(name='AssumeRoleWithIdentityContext')
 async def assume_role_with_identity_context(
-    role_arn: str,
-    identity_context: str,
-    idc_region: str,
-    role_session_name: str = 'qbusiness-session',
+    role_arn: str = Field(description='The ARN of the IAM role to assume'),
+    identity_context: str = Field(
+        description='The sts:identity_context value from the decoded token'
+    ),
+    idc_region: str = Field(description='The AWS region for IAM Identity Center'),
+    role_session_name: str = Field(
+        default='qbusiness-session', description='An identifier for the assumed role session'
+    ),
 ) -> Dict:
     """Assume an IAM role using the identity context from the token.
 
@@ -291,16 +300,36 @@ async def assume_role_with_identity_context(
 
 @mcp.tool(name='SearchRelevantContent')
 async def search_relevant_content(
-    application_id: str,
-    query_text: str,
-    attribute_filter: Optional[AttributeFilter] = None,
-    content_source: Optional[ContentSource] = None,
-    max_results: Optional[int] = 3,
-    next_token: Optional[str] = None,
-    qbuiness_region: str = 'us-east-1',
-    aws_access_key_id: Optional[str] = None,
-    aws_secret_access_key: Optional[str] = None,
-    aws_session_token: Optional[str] = None,
+    application_id: str = Field(
+        description='The unique identifier of the application to search in'
+    ),
+    query_text: str = Field(description='The text to search for'),
+    attribute_filter: Optional[AttributeFilter] = Field(
+        default=None,
+        description='Filter criteria to narrow down search results based on specific document attributes',
+    ),
+    content_source: Optional[ContentSource] = Field(
+        default=None,
+        description='Configuration specifying which content sources to include in the search',
+    ),
+    max_results: Optional[int] = Field(
+        default=3, description='Maximum number of results to return (1-100)', ge=1, le=100
+    ),
+    next_token: Optional[str] = Field(
+        default=None, description='Token for pagination to get the next set of results'
+    ),
+    qbuiness_region: str = Field(
+        default='us-east-1', description='The AWS region in which Qbusiness application is present'
+    ),
+    aws_access_key_id: Optional[str] = Field(
+        default=None, description='AWS access key ID from temporary credentials'
+    ),
+    aws_secret_access_key: Optional[str] = Field(
+        default=None, description='AWS secret access key from temporary credentials'
+    ),
+    aws_session_token: Optional[str] = Field(
+        default=None, description='AWS session token from temporary credentials'
+    ),
 ) -> SearchRelevantContentResponseTypeDef:
     """Search for relevant content in an Amazon Q Business application.
 
@@ -401,21 +430,7 @@ async def search_relevant_content(
 
 def main():
     """Run the MCP server with CLI argument support."""
-    parser = argparse.ArgumentParser(
-        description='An AWS Labs Model Context Protocol (MCP) server for amazon_qindex'
-    )
-    parser.add_argument('--sse', action='store_true', help='Use SSE transport')
-    parser.add_argument('--port', type=int, default=8888, help='Port to run the server on')
-
-    args = parser.parse_args()
-
-    # Run server with appropriate transport
-    if args.sse:
-        mcp.settings.port = args.port
-        mcp.run(transport='sse')
-
-    else:
-        mcp.run()
+    mcp.run()
 
 
 if __name__ == '__main__':

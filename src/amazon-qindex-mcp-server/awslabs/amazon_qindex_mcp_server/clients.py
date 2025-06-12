@@ -69,6 +69,82 @@ class QBusinessClient:
         )
         return session.client('qbusiness')
 
+    def _validate_attribute_filter(self, attribute_filter: Dict) -> None:
+        """Validate the attribute filter parameter.
+
+        Args:
+            attribute_filter (Dict): The attribute filter to validate
+
+        Raises:
+            ValueError: If the attribute filter is invalid
+        """
+        if not isinstance(attribute_filter, dict):
+            raise ValueError('attribute_filter must be a dictionary')
+
+        required_keys = ['attributeName', 'attributeValue']
+        for key in required_keys:
+            if key not in attribute_filter:
+                raise ValueError(f'attribute_filter missing required key: {key}')
+
+        valid_value_types = ['StringValue', 'StringListValue', 'LongValue', 'DateValue']
+        if not any(key in attribute_filter['attributeValue'] for key in valid_value_types):
+            raise ValueError('attributeValue must contain one of: ' + ', '.join(valid_value_types))
+
+    def _validate_content_source(self, content_source: Dict) -> None:
+        """Validate the content source parameter.
+
+        Args:
+            content_source (Dict): The content source to validate
+
+        Raises:
+            ValueError: If the content source is invalid
+        """
+        if not isinstance(content_source, dict):
+            raise ValueError('content_source must be a dictionary')
+
+        # Check for retriever field instead of sourceType
+        if 'retriever' not in content_source:
+            raise ValueError("content_source must include 'retriever'")
+
+        # Validate retriever has required retrieverId
+        retriever = content_source.get('retriever')
+        if not isinstance(retriever, dict) or 'retrieverId' not in retriever:
+            raise ValueError("content_source.retriever must include 'retrieverId'")
+
+    def _validate_max_results(self, max_results: int) -> None:
+        """Validate the max_results parameter.
+
+        Args:
+            max_results (int): The maximum number of results to validate
+
+        Raises:
+            ValueError: If max_results is invalid
+        """
+        if not isinstance(max_results, int):
+            raise ValueError('max_results must be an integer')
+
+        if max_results < 1 or max_results > 100:
+            raise ValueError('max_results must be between 1 and 100')
+
+    def _validate_required_params(self, application_id: str, query_text: str) -> None:
+        """Validate the required parameters.
+
+        Args:
+            application_id (str): The application ID to validate
+            query_text (str): The query text to validate
+
+        Raises:
+            ValueError: If any required parameter is invalid
+        """
+        if not application_id or not isinstance(application_id, str):
+            raise ValueError('application_id must be a non-empty string')
+
+        if not query_text or not isinstance(query_text, str):
+            raise ValueError('query_text must be a non-empty string')
+
+        if len(query_text.strip()) == 0:
+            raise ValueError('query_text cannot be empty or only whitespace')
+
     def _handle_client_error(self, error: ClientError, operation: str) -> None:
         """Handle boto3 client errors.
 
@@ -114,7 +190,6 @@ class QBusinessClient:
             content_source (Optional[ContentSource]): Configuration specifying which content sources to include in the search
             max_results (Optional[int]): Maximum number of results to return (1-100)
             next_token (Optional[str]): Token for pagination
-            filters (Optional[Dict]): Filters to apply to the search
 
         Returns:
             Dict: Search results and pagination token. Response syntax:
@@ -145,6 +220,19 @@ class QBusinessClient:
             QBusinessClientError: If the API call fails
         """
         try:
+            # Validate required parameters
+            self._validate_required_params(application_id, query_text)
+
+            # Validate optional parameters if provided
+            if attribute_filter is not None:
+                self._validate_attribute_filter(attribute_filter)
+            if content_source is not None:
+                self._validate_content_source(content_source)
+            if max_results is not None:
+                self._validate_max_results(max_results)
+            if next_token is not None and not isinstance(next_token, str):
+                raise ValueError('next_token must be a string')
+
             # Build request parameters
             params: Dict[str, Any] = {
                 'applicationId': str(application_id),

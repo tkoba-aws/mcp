@@ -340,32 +340,8 @@ class TestAssumeRoleWithIdentityContext:
 class TestMainFunction:
     """Tests for the main() function."""
 
-    def test_main_with_sse(self, mocker):
-        """Test main function with SSE transport."""
-        mock_argparse = mocker.patch('argparse.ArgumentParser')
-        mock_args = mocker.Mock()
-        mock_args.sse = True
-        mock_args.port = 8888
-        mock_argparse.return_value.parse_args.return_value = mock_args
-
-        mock_mcp = mocker.Mock()
-        mocker.patch('awslabs.amazon_qindex_mcp_server.server.mcp', mock_mcp)
-
-        from awslabs.amazon_qindex_mcp_server.server import main
-
-        main()
-
-        assert mock_mcp.settings.port == 8888
-        mock_mcp.run.assert_called_once_with(transport='sse')
-
-    def test_main_without_sse(self, mocker):
-        """Test main function without SSE transport."""
-        mock_argparse = mocker.patch('argparse.ArgumentParser')
-        mock_args = mocker.Mock()
-        mock_args.sse = False
-        mock_args.port = 8888
-        mock_argparse.return_value.parse_args.return_value = mock_args
-
+    def test_main(self, mocker):
+        """Test main function."""
         mock_mcp = mocker.Mock()
         mocker.patch('awslabs.amazon_qindex_mcp_server.server.mcp', mock_mcp)
 
