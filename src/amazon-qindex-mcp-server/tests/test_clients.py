@@ -129,7 +129,7 @@ class TestQBusinessClient:
         """Test string safety validation."""
         # Test valid strings
         client._validate_string_safety('normal text', 'test_param')
-        client._validate_string_safety('[MAC_ADDRESS]', 'test_param')
+        client._validate_string_safety('MAC_ADDRESS', 'test_param')
 
         # Test command injection patterns
         dangerous_inputs = [
@@ -298,12 +298,12 @@ class TestQBusinessClient:
         client.client = mock_client
 
         # Test dangerous patterns in parameters
-        with pytest.raises(ValueError, match='Invalid character/pattern detected'):
+        with pytest.raises(QBusinessClientError, match='Invalid character/pattern detected'):
             client.search_relevant_content(
                 application_id='app-id; rm -rf /', query_text='test query'
             )
 
-        with pytest.raises(ValueError, match='Invalid character/pattern detected'):
+        with pytest.raises(QBusinessClientError, match='Invalid character/pattern detected'):
             client.search_relevant_content(
                 application_id='app-id', query_text='query && echo hack'
             )

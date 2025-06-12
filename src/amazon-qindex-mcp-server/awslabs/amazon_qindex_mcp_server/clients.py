@@ -83,6 +83,9 @@ class QBusinessClient:
 
         # Check for direct attribute name/value structure
         if 'attributeName' in attribute_filter and 'attributeValue' in attribute_filter:
+            # Add security validation for attributeName
+            self._validate_string_safety(str(attribute_filter['attributeName']), 'attributeName')
+
             value = attribute_filter['attributeValue']
             if not isinstance(value, dict):
                 raise ValueError('attributeValue must be a dictionary')
@@ -91,6 +94,13 @@ class QBusinessClient:
                 raise ValueError(
                     'attributeValue must contain one of: ' + ', '.join(valid_value_types)
                 )
+
+            # Add security validation for string values
+            if 'StringValue' in value:
+                self._validate_string_safety(str(value['StringValue']), 'StringValue')
+            if 'StringListValue' in value:
+                for item in value['StringListValue']:
+                    self._validate_string_safety(str(item), 'StringListValue item')
             return
 
         # Check for nested filter structure
@@ -100,6 +110,8 @@ class QBusinessClient:
                 raise ValueError('equalsTo must be a dictionary')
             if 'name' not in equals_to or 'value' not in equals_to:
                 raise ValueError('equalsTo must contain name and value')
+            # Add security validation for nested values
+            self._validate_string_safety(str(equals_to['name']), 'equalsTo.name')
 
     def _validate_content_source(self, content_source: Dict) -> None:
         """Validate the content source parameter.
