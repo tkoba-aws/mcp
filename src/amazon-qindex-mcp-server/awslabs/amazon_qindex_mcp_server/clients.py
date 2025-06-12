@@ -81,14 +81,25 @@ class QBusinessClient:
         if not isinstance(attribute_filter, dict):
             raise ValueError('attribute_filter must be a dictionary')
 
-        required_keys = ['attributeName', 'attributeValue']
-        for key in required_keys:
-            if key not in attribute_filter:
-                raise ValueError(f'attribute_filter missing required key: {key}')
+        # Check for direct attribute name/value structure
+        if 'attributeName' in attribute_filter and 'attributeValue' in attribute_filter:
+            value = attribute_filter['attributeValue']
+            if not isinstance(value, dict):
+                raise ValueError('attributeValue must be a dictionary')
+            valid_value_types = ['StringValue', 'StringListValue', 'LongValue', 'DateValue']
+            if not any(key in value for key in valid_value_types):
+                raise ValueError(
+                    'attributeValue must contain one of: ' + ', '.join(valid_value_types)
+                )
+            return
 
-        valid_value_types = ['StringValue', 'StringListValue', 'LongValue', 'DateValue']
-        if not any(key in attribute_filter['attributeValue'] for key in valid_value_types):
-            raise ValueError('attributeValue must contain one of: ' + ', '.join(valid_value_types))
+        # Check for nested filter structure
+        if 'equalsTo' in attribute_filter:
+            equals_to = attribute_filter['equalsTo']
+            if not isinstance(equals_to, dict):
+                raise ValueError('equalsTo must be a dictionary')
+            if 'name' not in equals_to or 'value' not in equals_to:
+                raise ValueError('equalsTo must contain name and value')
 
     def _validate_content_source(self, content_source: Dict) -> None:
         """Validate the content source parameter.

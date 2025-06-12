@@ -17,7 +17,7 @@
 import boto3
 import os
 import sys
-from awslabs.amazon_qindex_mcp_server.clients import QBusinessClient
+from awslabs.amazon_qindex_mcp_server.clients import QBusinessClient, QBusinessClientError
 from loguru import logger
 from mcp.server.fastmcp import FastMCP
 from mypy_boto3_qbusiness.type_defs import SearchRelevantContentResponseTypeDef
@@ -388,6 +388,10 @@ async def search_relevant_content(
         ValueError: If there's an error with the Q Business API call or if credentials are missing/invalid
     """
     try:
+        # Check for credentials first
+        if not aws_access_key_id or not aws_secret_access_key:
+            raise QBusinessClientError('Missing AWS credentials')
+
         # Create QBusinessClient with provided credentials
         client = QBusinessClient(
             region_name=qbuiness_region,

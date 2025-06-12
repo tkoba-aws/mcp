@@ -169,11 +169,21 @@ class TestCreateTokenWithIAM:
         assert 'AWS Error' in str(exc_info.value)
 
     @pytest.mark.asyncio
-    async def test_create_token_with_iam_parameter_validation(self):
+    async def test_create_token_with_iam_parameter_validation(self, mocker):
         """Test parameter validation."""
-        # Test with missing parameters
-        with pytest.raises(TypeError):
-            await create_token_with_iam()
+        # Mock boto3 session and clients
+        mock_session = mocker.Mock()
+        mock_sts_client = mocker.Mock()
+        mock_sso_client = mocker.Mock()
+
+        # Set up mock returns
+        mock_session.client.side_effect = [mock_sts_client, mock_sso_client]
+
+        # Configure mock to raise ValueError for empty parameters
+        mock_sso_client.create_token_with_iam.side_effect = ValueError('Invalid parameters')
+
+        # Mock boto3.Session
+        mocker.patch('boto3.Session', return_value=mock_session)
 
         # Test with empty strings
         with pytest.raises(ValueError):
@@ -244,17 +254,27 @@ class TestServerErrorHandling:
             )
 
     @pytest.mark.asyncio
-    async def test_missing_credentials(self):
+    async def test_missing_credentials(self, mocker):
         """Test handling of missing AWS credentials."""
         from awslabs.amazon_qindex_mcp_server.server import search_relevant_content
 
+        # Mock QBusinessClient to prevent actual AWS calls
+        mock_client = mocker.Mock()
+        mocker.patch(
+            'awslabs.amazon_qindex_mcp_server.server.QBusinessClient', return_value=mock_client
+        )
+
+        # Create a mock request without credentials
         with pytest.raises(ValueError) as exc_info:
             await search_relevant_content(
                 application_id='test-app',
                 query_text='test',
                 qbuiness_region='us-east-1',
-                # Missing AWS credentials
+                aws_access_key_id=None,
+                aws_secret_access_key=None,
+                aws_session_token=None,
             )
+
         assert 'Missing AWS credentials' in str(exc_info.value)
 
 

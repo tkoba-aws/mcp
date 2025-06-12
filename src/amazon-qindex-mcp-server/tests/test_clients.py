@@ -92,8 +92,11 @@ class TestQBusinessClient:
         response = client.search_relevant_content(
             application_id='12345678-1234-5678-1234-567812345678',
             query_text='test query',
-            attribute_filter={'equalsTo': {'name': 'test', 'value': {'stringValue': 'test'}}},
-            content_source={'retriever': {'retrieverId': '12345678-1234-5678-1234-567812345678'}},
+            attribute_filter={'attributeName': 'test', 'attributeValue': {'StringValue': 'test'}},
+            content_source={
+                'sourceType': 'WORKSPACE',
+                'retriever': {'retrieverId': '12345678-1234-5678-1234-567812345678'},
+            },
             max_results=10,
             next_token='token',
         )
@@ -105,8 +108,11 @@ class TestQBusinessClient:
         mock_client.search_relevant_content.assert_called_once_with(
             applicationId='12345678-1234-5678-1234-567812345678',
             queryText='test query',
-            attributeFilter={'equalsTo': {'name': 'test', 'value': {'stringValue': 'test'}}},
-            contentSource={'retriever': {'retrieverId': '12345678-1234-5678-1234-567812345678'}},
+            attributeFilter={'attributeName': 'test', 'attributeValue': {'StringValue': 'test'}},
+            contentSource={
+                'sourceType': 'WORKSPACE',
+                'retriever': {'retrieverId': '12345678-1234-5678-1234-567812345678'},
+            },
             maxResults=10,
             nextToken='token',
         )
