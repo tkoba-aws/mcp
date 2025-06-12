@@ -73,6 +73,74 @@ class TestQBusinessClient:
             region_name='us-east-1',
         )
 
+    def test_validate_attribute_filter_invalid_types(self, client):
+        """Test attribute filter validation with invalid types."""
+        # Test non-dictionary input
+        with pytest.raises(ValueError, match='attribute_filter must be a dictionary'):
+            client._validate_attribute_filter([])
+
+        # Test invalid attributeValue type
+        with pytest.raises(ValueError, match='attributeValue must be a dictionary'):
+            client._validate_attribute_filter(
+                {'attributeName': 'test', 'attributeValue': 'not_a_dict'}
+            )
+
+        # Test missing valid value type
+        with pytest.raises(ValueError, match='attributeValue must contain one of:'):
+            client._validate_attribute_filter(
+                {'attributeName': 'test', 'attributeValue': {'InvalidType': 'value'}}
+            )
+
+    def test_validate_content_source_invalid_types(self, client):
+        """Test content source validation with invalid types."""
+        # Test non-dictionary input
+        with pytest.raises(ValueError, match='content_source must be a dictionary'):
+            client._validate_content_source([])
+
+        # Test missing retriever
+        with pytest.raises(ValueError, match="content_source must include 'retriever'"):
+            client._validate_content_source({})
+
+        # Test invalid retriever type
+        with pytest.raises(
+            ValueError, match="content_source.retriever must include 'retrieverId'"
+        ):
+            client._validate_content_source({'retriever': 'not_a_dict'})
+
+        # Test missing retrieverId
+        with pytest.raises(
+            ValueError, match="content_source.retriever must include 'retrieverId'"
+        ):
+            client._validate_content_source({'retriever': {}})
+
+    def test_validate_max_results_invalid(self, client):
+        """Test max_results validation with invalid values."""
+        # Test non-integer input
+        with pytest.raises(ValueError, match='max_results must be an integer'):
+            client._validate_max_results('10')
+
+        # Test out of range values
+        with pytest.raises(ValueError, match='max_results must be between 1 and 100'):
+            client._validate_max_results(0)
+        with pytest.raises(ValueError, match='max_results must be between 1 and 100'):
+            client._validate_max_results(101)
+
+    def test_validate_required_params_invalid(self, client):
+        """Test required parameters validation with invalid values."""
+        # Test invalid application_id
+        with pytest.raises(ValueError, match='application_id must be a non-empty string'):
+            client._validate_required_params(None, 'test')
+        with pytest.raises(ValueError, match='application_id must be a non-empty string'):
+            client._validate_required_params('', 'test')
+
+        # Test invalid query_text
+        with pytest.raises(ValueError, match='query_text must be a non-empty string'):
+            client._validate_required_params('test-app', None)
+        with pytest.raises(ValueError, match='query_text must be a non-empty string'):
+            client._validate_required_params('test-app', '')
+        with pytest.raises(ValueError, match='query_text cannot be empty or only whitespace'):
+            client._validate_required_params('test-app', '   ')
+
     def test_search_relevant_content_success(self, client, mock_boto3_session):
         """Test successful search_relevant_content call."""
         # Get the mocked session and client
