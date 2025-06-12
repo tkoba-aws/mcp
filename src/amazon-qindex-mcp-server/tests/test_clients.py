@@ -125,6 +125,86 @@ class TestQBusinessClient:
         with pytest.raises(ValueError, match='max_results must be between 1 and 100'):
             client._validate_max_results(101)
 
+    def test_validate_string_safety(self, client):
+        """Test string safety validation."""
+        # Test valid strings
+        client._validate_string_safety('normal text', 'test_param')
+        client._validate_string_safety('[MAC_ADDRESS]', 'test_param')
+
+        # Test command injection patterns
+        dangerous_inputs = [
+            'text; rm -rf /',
+            'text && echo hack',
+            'text || true',
+            'text | grep secret',
+            'text > file.txt',
+            'text < input.txt',
+            'text >> append.txt',
+            'text << EOF',
+            '$(command)',
+            '`command`',
+            '${PATH}',
+            "eval('code')",
+            "exec('code')",
+            "system('command')",
+        ]
+
+        for dangerous_input in dangerous_inputs:
+            with pytest.raises(ValueError, match='Invalid character/pattern detected'):
+                client._validate_string_safety(dangerous_input, 'test_param')
+
+        # Test excessive length
+        long_string = 'a' * 1001
+        with pytest.raises(ValueError, match='exceeds maximum length'):
+            client._validate_string_safety(long_string, 'test_param')
+
+    def test_validate_attribute_filter_security(self, client):
+        """Test attribute filter security validation."""
+        # Test dangerous patterns in attribute name
+        with pytest.raises(ValueError, match='Invalid character/pattern detected'):
+            client._validate_attribute_filter(
+                {'attributeName': 'test; rm -rf /', 'attributeValue': {'StringValue': 'test'}}
+            )
+
+        # Test dangerous patterns in string value
+        with pytest.raises(ValueError, match='Invalid character/pattern detected'):
+            client._validate_attribute_filter(
+                {'attributeName': 'test', 'attributeValue': {'StringValue': '$(command)'}}
+            )
+
+        # Test dangerous patterns in string list
+        with pytest.raises(ValueError, match='Invalid character/pattern detected'):
+            client._validate_attribute_filter(
+                {
+                    'attributeName': 'test',
+                    'attributeValue': {'StringListValue': ['normal', '`command`']},
+                }
+            )
+
+        # Test dangerous patterns in equals to
+        with pytest.raises(ValueError, match='Invalid character/pattern detected'):
+            client._validate_attribute_filter(
+                {'equalsTo': {'name': 'test; rm -rf /', 'value': {'StringValue': 'test'}}}
+            )
+
+    def test_validate_required_params_security(self, client):
+        """Test required parameters security validation."""
+        # Test dangerous patterns in application_id
+        with pytest.raises(ValueError, match='Invalid character/pattern detected'):
+            client._validate_required_params('app-id; rm -rf /', 'test query')
+
+        # Test dangerous patterns in query_text
+        with pytest.raises(ValueError, match='Invalid character/pattern detected'):
+            client._validate_required_params('app-id', 'query && echo hack')
+
+        # Test excessive length in application_id
+        with pytest.raises(ValueError, match='exceeds maximum length'):
+            client._validate_required_params('a' * 1001, 'test query')
+
+        # Test excessive length in query_text
+        with pytest.raises(ValueError, match='exceeds maximum length'):
+            client._validate_required_params('app-id', 'a' * 1001)
+
     def test_validate_required_params_invalid(self, client):
         """Test required parameters validation with invalid values."""
         # Test invalid application_id
@@ -211,6 +291,22 @@ class TestQBusinessClient:
 
         # Verify the mock was called with correct parameters
         mock_client.search_relevant_content.assert_called_once()
+
+    def test_search_relevant_content_security(self, client, mock_boto3_session):
+        """Test search_relevant_content security validation."""
+        _, mock_client = mock_boto3_session
+        client.client = mock_client
+
+        # Test dangerous patterns in parameters
+        with pytest.raises(ValueError, match='Invalid character/pattern detected'):
+            client.search_relevant_content(
+                application_id='app-id; rm -rf /', query_text='test query'
+            )
+
+        with pytest.raises(ValueError, match='Invalid character/pattern detected'):
+            client.search_relevant_content(
+                application_id='app-id', query_text='query && echo hack'
+            )
 
     def test_search_relevant_content_client_error(self, client, mock_boto3_session):
         """Test search_relevant_content with ClientError."""

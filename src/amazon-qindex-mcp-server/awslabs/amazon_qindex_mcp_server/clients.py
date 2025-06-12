@@ -137,6 +137,47 @@ class QBusinessClient:
         if max_results < 1 or max_results > 100:
             raise ValueError('max_results must be between 1 and 100')
 
+    def _validate_string_safety(self, value: str, param_name: str) -> None:
+        """Validate string parameters for dangerous patterns.
+
+        Args:
+            value: String value to validate
+            param_name: Name of parameter being validated
+
+        Raises:
+            ValueError: If dangerous patterns are detected
+        """
+        # Check for command injection patterns
+        dangerous_patterns = [
+            ';',
+            '&&',
+            '||',
+            '|',
+            '>',
+            '<',
+            '>>',
+            '<<',
+            '$(',
+            '`',
+            '{',
+            '}',
+            '[',
+            ']',
+            '$(',
+            '${',
+            'eval',
+            'exec',
+            'system',
+        ]
+
+        for pattern in dangerous_patterns:
+            if pattern in value:
+                raise ValueError(f'Invalid character/pattern detected in {param_name}')
+
+        # Check for excessive length
+        if len(value) > 1000:  # Adjust limit as needed
+            raise ValueError(f'{param_name} exceeds maximum length')
+
     def _validate_required_params(self, application_id: str, query_text: str) -> None:
         """Validate the required parameters.
 
@@ -155,6 +196,9 @@ class QBusinessClient:
 
         if len(query_text.strip()) == 0:
             raise ValueError('query_text cannot be empty or only whitespace')
+
+        self._validate_string_safety(application_id, 'application_id')
+        self._validate_string_safety(query_text, 'query_text')
 
     def _handle_client_error(self, error: ClientError, operation: str) -> None:
         """Handle boto3 client errors.
