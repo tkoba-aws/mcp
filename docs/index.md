@@ -78,7 +78,7 @@ The Amazon Q index MCP Server enables AI assistants to search through enterprise
 - Search Tools
 -- SearchRelevantContent: Searches and retrieves content from Q Business applications
 
-[Learn more about the Amazon Kendra Index MCP Server](servers/kendra-index-mcp-server.md)
+[Learn more about the Amazon Q index MCP Server](servers/amazon-qindex-mcp-server.md)
 
 ### Amazon Bedrock Knowledge Base Retrieval MCP Server
 
