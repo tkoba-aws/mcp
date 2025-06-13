@@ -67,7 +67,10 @@ class QBusinessClient:
             aws_session_token=self.aws_session_token,
             region_name=self.region_name,
         )
-        return session.client('qbusiness')
+        return session.client(
+            'qbusiness'
+            config=boto3.Config(user_agent_extra='QIndex-MCP-Server/1.0')    
+        )
 
     def _validate_attribute_filter(self, attribute_filter: Dict) -> None:
         """Validate the attribute filter parameter.
