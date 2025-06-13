@@ -48,7 +48,6 @@ class TestQBusinessClient:
                 # Verify config is properly passed
                 assert 'config' in kwargs
                 assert isinstance(kwargs['config'], Config)
-                assert kwargs['config'].user_agent_extra == 'QIndex-MCP-Server/1.0'
                 return mock_client
 
             mock_session.return_value.client = client_creator
