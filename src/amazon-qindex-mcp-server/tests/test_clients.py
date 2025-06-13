@@ -16,6 +16,7 @@
 
 import pytest
 from awslabs.amazon_qindex_mcp_server.clients import QBusinessClient, QBusinessClientError
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from typing import Any, cast
 from unittest.mock import Mock, patch
@@ -41,7 +42,16 @@ class TestQBusinessClient:
             mock_client = Mock()
             # Prevent parameter validation from boto3
             mock_client.meta.events.register.return_value = None
-            mock_session.return_value.client.return_value = mock_client
+
+            # Mock the client creation with config parameter
+            def client_creator(*args, **kwargs):
+                # Verify config is properly passed
+                assert 'config' in kwargs
+                assert isinstance(kwargs['config'], Config)
+                assert kwargs['config'].user_agent_extra == 'QIndex-MCP-Server/1.0'
+                return mock_client
+
+            mock_session.return_value.client = client_creator
             yield mock_session, mock_client
 
     def test_init_with_credentials(self, mock_boto3_session):
